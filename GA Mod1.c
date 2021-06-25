@@ -15,10 +15,12 @@ Person people[3000000];
 Person defaultNull;
 
 Person find(Person current, int this_time){
+    Person cur = current;
     while(current.parent != &defaultNull && current.q_time == this_time){
-        current = *current.parent;
+        cur = *cur.parent;
     }
-    return current;
+    current.parent = &cur;
+    return cur;
 }
 
 int compareMax(int a, int b){
@@ -138,7 +140,7 @@ void unionByRank(Person x, Person y){
         }
         small.parent = &large;
         large.size += small.size;
-        //count -= 1;
+        count -= 1;
         largest = compareMax(largest, large.size);
         if(large.rank == small.rank)
             large.rank += 1;
@@ -156,6 +158,7 @@ void group_analyses(int i){
     for(int k = 0; k< all; k++){
         x = checkExist(mails[mids[k]].from);
         y = checkExist(mails[mids[k]].to);
+        printf("%s %s\n", x.name, y.name);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
