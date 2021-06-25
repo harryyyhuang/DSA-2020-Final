@@ -79,7 +79,7 @@ Person newComing(char name[], Person x){
         x.name[k] = name[k];
     }
     x.rank = 0;
-    x.size = 0;
+    x.size = 1;
     x.q_time = 0;
     x.parent = &defaultNull;
     return x;
@@ -112,7 +112,7 @@ void peopleINIT(void){
     for(int i = 0; i< 20000; i++){
         people[i].name[0] = '\0';
         people[i].rank = 0;
-        people[i].size = 0;
+        people[i].size = 1;
         people[i].q_time = -1;
         people[i].nameLen = 0;
         people[i].parent = &defaultNull;
@@ -146,6 +146,7 @@ void unionByRank(Person x, Person y){
 }
 
 void group_analyses(int i){
+    this_time = i;
     all = queries[i].data.group_analyse_data.len;
     int mids[all], count = all, largest = 0;
     for(int k = 0; k< all; k++)
@@ -158,6 +159,10 @@ void group_analyses(int i){
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
+    for(int n = 0; n< 2; n++){
+        printf("%d ", ans[n]);
+    }
+    printf("\n");
     api.answer(queries[i].id, ans, 2);
 }
 
@@ -166,10 +171,12 @@ int main(void) {
     peopleINIT();
     for(int i = 0; i < n_queries; i++){
         if(queries[i].type == expression_match)
-            api.answer(queries[i].id, NULL, 0);
+            printf("");
+            //api.answer(queries[i].id, NULL, 0);
+        //else if(queries[i].type == find_similar)
+            //api.answer(queries[i].id, NULL, 0);
         else if(queries[i].type == group_analyse){
-            this_time = i;
-            group_analyses(this_time);
+            group_analyses(i);
         }
     }
 
