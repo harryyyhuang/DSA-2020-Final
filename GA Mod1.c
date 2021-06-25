@@ -3,21 +3,20 @@
 
 typedef struct person{
     char name[32];
-    int rank, size;
-    struct person *next;
+    int rank, size, q_time, nameLen;
     struct person *parent;
 }Person;
 
-int len, ret, j, count = 0, largest = 0;
+int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0;
 int n_mails, n_queries;
 mail *mails;
 query *queries;
+Person people[3000000];
+Person defaultNull;
 
-Person* find(Person* current){
-    if(current->parent != current){
-        //Path compression
-        current->parent = find(current->parent);
-        return current->parent;
+Person find(Person current, int this_time){
+    while(current->parent != defaultNull && current.q_time == this_time){
+        current = current.parent;
     }
     return current;
 }
@@ -41,130 +40,136 @@ int c2i(char c) {
 int getHashValue(char str[], int all){
     ret = 0;
     len = (int)strlen(str);
-    for(j = 0; j < len; j++){
-        ret = (52 * ret + c2i(str[j])) % all;
+    for(int k = 0; k < 32; k++){
+        if(str[k] == '\0')
+            break;
+        else
+            ret = (52 * ret + c2i(str[k])) % all;
     }
+    len = k
     return ret;
 }
 
-void collision(Person* y, char xName[]){
-    Person* new = (Person*)malloc(sizeof(Person));
-    int xNameLen = (int)strlen(xName);
-    for(j = 0; j< xNameLen; j++){
-        new->name[j] = xName[j];
-    }
-    y->next = new;
-    new->next = new;
-    new->parent = new;
-    new->rank = 0;
-    new->size = 0;
+int doubleHash(int hash){
+    return (hash + collision * (hash % 1121)) % 3000000;
 }
 
-Person* checkExist(Person* y, char xName[]){
-    int xNameLen = (int)strlen(xName);
-    if(y->name[0] == '\0'){
-        for(j = 0; j< xNameLen; j++){
-            y->name[j] = xName[j];
-        }
-        return y;
-    }else{
-        if(xNameLen == strlen(y->name)){
-            for(j = 0; j< xNameLen; j++){
-                if(xName[j] != y->name[j])
-                    break;
-            }
-            if(j == xNameLen)
-                return y;
-        }
-        if(y->next != y)
-            return checkExist(y->next, xName);
-        else{
-            collision(y, xName);
-            return y->next;
-        }
+//失敗回傳0，成功回傳1，遇到空洞回傳-1
+int isNameMatch(char xName[], Person y){
+    if(y.name[0] == '\0')
+        return -1;
+    else{
+        if(len == y.nameLen){
+            for(j = 0; j< xlen; j++)
+              if(xName[j] != y.name[j])
+                   break;
+            if(j == len)
+                return 1;
+            else
+                return 0;
+        }else
+            return 0;
     }
 }
 
-void unionByRank(Person* x, Person* y){
-    Person* xRoot = find(x);
-    Person* yRoot = find(y);
-    Person *large, *small;
+Person newComing(char name, Person x){
+    x.nameLen = len;
+    for(int k = 0; k< x.nameLen; k++){
+        x.name[k] = name[k];
+    }
+    x.rank = 0;
+    x.size = 0;
+    x.qtime = 0;
+    x.parent = &defaultNull;
+}
+
+Person checkExist(char name[]){
+    collision = 0;
+    int hash = getHashValue(name);
+    int index = hash;
+    outcome = isNameMatch(name, people[index]);
+    if(outcome == 1)
+        return people[index];
+    else if(outcome == 0){
+        while(outcome == 0){
+            collision += 1;
+            index = doubleHash(hash);
+            outcome = isNameMatch(name, people[index]);
+        }
+        if(outcome == 1)
+            return people[index];
+        else
+            return newComing(name, people[index]);
+    }else
+        return newComing(name, people[index]);
+
+}
+
+void peopleINIT(void){
+    for(int i = 0; i< 20000; i++){
+        people[i].name[0] = '\0';
+        people[i].rank = 0;
+        people[i].size = 0;
+        people[i].q_time = -1;
+        people[i].nameLen = 0;
+        people[i].parent = &defaultNull;
+    }
+}
+
+void unionByRank(Person x, Person y){
+    x.q_time = i;
+    y.q_time = i;
+    Person xRoot = find(x, i);
+    xRoot.q_time = i;
+    Person yRoot = find(y, i);
+    yRoot.q_time = i;
+    Person large, small;
 
     if(xRoot != yRoot){
-        if(xRoot->rank < yRoot->rank){
+        if(xRoot.rank < yRoot.rank){
             large = yRoot;
             small = xRoot;
         }else{
             large = xRoot;
             small = yRoot;
         }
-        small->parent = large;
-        large->size += small->size;
+        small.parent = &large;
+        large.size += small.size;
         count -= 1;
-        compareMax(largest, large->size);
-        if(large->rank == small->rank)
-            large->rank += 1;
+        compareMax(largest, large.size);
+        if(large.rank == small.rank)
+            large.rank += 1;
     }
 }
 
-
-void group_analyses(int i){
+void group_analyse(int i){
     int all = queries[i].data.group_analyse_data.len;
-    int mids[all];
-    for(int j = 0; j< all; j++)
-        mids[j] = queries[i].data.group_analyse_data.mids[j];
-    //看看裡面有什麼
-    for(int j = 0; j< all; j++){
-        if(j != all -1)
-            printf("%d, ", mids[j]);
-        else
-            printf("%d\n", mids[i]);
-    }
-    Person *x, *y;
-    Person* people = (Person*)malloc(sizeof(Person)* all);
-    int value;
-    //Init
-    for(int i = 0; i< all; i++){
-        (people + i*sizeof(Person))->name[0] = '\0';
-        (people + i*sizeof(Person))->next = &people[i];
-        (people + i*sizeof(Person))->parent = &people[i];
-        (people + i*sizeof(Person))->rank = 0;
-        (people + i*sizeof(Person))->size = 0;
-    }
-    count = all;
-    for(int i = 0; i< all; i++){
-        value = getHashValue(mails[mids[i]].from, all);
-        x = checkExist(&people[value], mails[mids[i]].from);
-        value = getHashValue(mails[mids[i]].to, all);
-        y = checkExist(&people[value], mails[mids[i]].to);
+    int mids[all], count = all;
+    for(int k = 0; k< all; k++)
+        mids[k] = queries[i].data.group_analyse_data.mids[k];
+    //找關係
+    Person x, y;
+    for(int k = 0; k< all; k++){
+        //處理collision時的double hashing.
+        x = checkExist(mails[mids[k]].from);
+        y = checkExist(mails[mids[k]].to);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
-    free(people);
-    printf("%d %d", ans[0], ans[1]);
-    api.answer(queries[i].id, ans, len);
+    api.answer(queries[i].id, ans, 2);
 }
 
 int main(void) {
     api.init(&n_mails, &n_queries, &mails, &queries);
-    printf("Initialization finished\n");
-    //看看裡面有什麼
-    for(int j = 0; j< queries[0].data.group_analyse_data.len; j++){
-        if(j != queries[0].data.group_analyse_data.len -1)
-            printf("%d, ", queries[0].data.group_analyse_data.mids[j]);
-        else
-            printf("%d\n", queries[0].data.group_analyse_data.mids[j]);
-    }
+    peopleINIT();
     for(int i = 0; i < n_queries; i++){
-        printf("%d, ", queries[i].data.group_analyse_data.mids[j]);
-        //if(queries[i].type == expression_match)
-            //api.answer(queries[i].id, NULL, 0);
-        /*else*/ if(queries[i].type == group_analyse){
+        if(queries[i].type == expression_match)
+            api.answer(queries[i].id, NULL, 0);
+        else if(queries[i].type == group_analyse){
             group_analyses(i);
         }
     }
 
+
   return 0;
 }
-
-
