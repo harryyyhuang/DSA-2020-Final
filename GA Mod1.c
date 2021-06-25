@@ -80,7 +80,7 @@ Person newComing(char name[], Person x){
     }
     x.rank = 0;
     x.size = 1;
-    x.q_time = 0;
+    x.q_time = this_time;
     x.parent = &defaultNull;
     return x;
 }
@@ -138,8 +138,8 @@ void unionByRank(Person x, Person y){
         }
         small.parent = &large;
         large.size += small.size;
-        count -= 1;
-        compareMax(largest, large.size);
+        //count -= 1;
+        largest = compareMax(largest, large.size);
         if(large.rank == small.rank)
             large.rank += 1;
     }
