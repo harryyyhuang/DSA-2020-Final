@@ -108,42 +108,63 @@ void unionByRank(Person* x, Person* y){
 }
 
 
-int* group_analyses(int mids[]){
-    int all = sizeof(*mids)/sizeof(int);
+void group_analyses(int i){
+    int all = queries[i].data.group_analyse_data.len;
+    int mids[all];
+    for(int j = 0; j< all; j++)
+        mids[j] = queries[i].data.group_analyse_data.mids[j];
+    //看看裡面有什麼
+    for(int j = 0; j< all; j++){
+        if(j != all -1)
+            printf("%d, ", mids[j]);
+        else
+            printf("%d\n", mids[i]);
+    }
     Person *x, *y;
-    Person people = (Person*)malloc(sizeof(Person)* all);
+    Person* people = (Person*)malloc(sizeof(Person)* all);
     int value;
     //Init
     for(int i = 0; i< all; i++){
-        people[i]->name[0] = '\0';
-        people[i]->next = people[i];
-        people[i]->parent = people[i];
-        people[i]->rank = 0;
-        people[i]->size = 0;
+        (people + i*sizeof(Person))->name[0] = '\0';
+        (people + i*sizeof(Person))->next = &people[i];
+        (people + i*sizeof(Person))->parent = &people[i];
+        (people + i*sizeof(Person))->rank = 0;
+        (people + i*sizeof(Person))->size = 0;
     }
     count = all;
     for(int i = 0; i< all; i++){
         value = getHashValue(mails[mids[i]].from, all);
-        x = checkExist(people[value], mails[mids[i]].from);
+        x = checkExist(&people[value], mails[mids[i]].from);
         value = getHashValue(mails[mids[i]].to, all);
-        y = checkExist(people[value], mails[mids[i]].to);
+        y = checkExist(&people[value], mails[mids[i]].to);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
     free(people);
-    return ans;
+    printf("%d %d", ans[0], ans[1]);
+    api.answer(queries[i].id, ans, len);
 }
 
 int main(void) {
     api.init(&n_mails, &n_queries, &mails, &queries);
     printf("Initialization finished\n");
-    for(int i = 0; i < n_queries; i++)
-        if(queries[i].type == expression_match)
-          api.answer(queries[i].id, NULL, 0);
-        else if(queries[i].type == group_analyse){
-            group_analyses(mids);
+    //看看裡面有什麼
+    for(int j = 0; j< queries[0].data.group_analyse_data.len; j++){
+        if(j != queries[0].data.group_analyse_data.len -1)
+            printf("%d, ", queries[0].data.group_analyse_data.mids[j]);
+        else
+            printf("%d\n", queries[0].data.group_analyse_data.mids[j]);
+    }
+    for(int i = 0; i < n_queries; i++){
+        printf("%d, ", queries[i].data.group_analyse_data.mids[j]);
+        //if(queries[i].type == expression_match)
+            //api.answer(queries[i].id, NULL, 0);
+        /*else*/ if(queries[i].type == group_analyse){
+            group_analyses(i);
         }
+    }
 
   return 0;
 }
+
 
