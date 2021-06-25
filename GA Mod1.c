@@ -7,7 +7,7 @@ typedef struct person{
     struct person *parent;
 }Person;
 
-int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0;
+int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0, this_time, all;
 int n_mails, n_queries;
 mail *mails;
 query *queries;
@@ -15,8 +15,8 @@ Person people[3000000];
 Person defaultNull;
 
 Person find(Person current, int this_time){
-    while(current->parent != defaultNull && current.q_time == this_time){
-        current = current.parent;
+    while(current.parent != &defaultNull && current.q_time == this_time){
+        current = *current.parent;
     }
     return current;
 }
@@ -37,16 +37,17 @@ int c2i(char c) {
         return -1;
 }
 
-int getHashValue(char str[], int all){
+int getHashValue(char str[]){
     ret = 0;
     len = (int)strlen(str);
-    for(int k = 0; k < 32; k++){
+    int k;
+    for(k = 0; k < 32; k++){
         if(str[k] == '\0')
             break;
         else
             ret = (52 * ret + c2i(str[k])) % all;
     }
-    len = k
+    len = k;
     return ret;
 }
 
@@ -60,7 +61,7 @@ int isNameMatch(char xName[], Person y){
         return -1;
     else{
         if(len == y.nameLen){
-            for(j = 0; j< xlen; j++)
+            for(j = 0; j< len; j++)
               if(xName[j] != y.name[j])
                    break;
             if(j == len)
@@ -72,15 +73,16 @@ int isNameMatch(char xName[], Person y){
     }
 }
 
-Person newComing(char name, Person x){
+Person newComing(char name[], Person x){
     x.nameLen = len;
     for(int k = 0; k< x.nameLen; k++){
         x.name[k] = name[k];
     }
     x.rank = 0;
     x.size = 0;
-    x.qtime = 0;
+    x.q_time = 0;
     x.parent = &defaultNull;
+    return x;
 }
 
 Person checkExist(char name[]){
@@ -118,15 +120,15 @@ void peopleINIT(void){
 }
 
 void unionByRank(Person x, Person y){
-    x.q_time = i;
-    y.q_time = i;
-    Person xRoot = find(x, i);
-    xRoot.q_time = i;
-    Person yRoot = find(y, i);
-    yRoot.q_time = i;
+    x.q_time = this_time;
+    y.q_time = this_time;
+    Person xRoot = find(x, this_time);
+    xRoot.q_time = this_time;
+    Person yRoot = find(y, this_time);
+    yRoot.q_time = this_time;
     Person large, small;
 
-    if(xRoot != yRoot){
+    if(&xRoot != &yRoot){
         if(xRoot.rank < yRoot.rank){
             large = yRoot;
             small = xRoot;
@@ -143,8 +145,8 @@ void unionByRank(Person x, Person y){
     }
 }
 
-void group_analyse(int i){
-    int all = queries[i].data.group_analyse_data.len;
+void group_analyses(int i){
+    all = queries[i].data.group_analyse_data.len;
     int mids[all], count = all, largest = 0;
     for(int k = 0; k< all; k++)
         mids[k] = queries[i].data.group_analyse_data.mids[k];
@@ -166,7 +168,8 @@ int main(void) {
         if(queries[i].type == expression_match)
             api.answer(queries[i].id, NULL, 0);
         else if(queries[i].type == group_analyse){
-            group_analyses(i);
+            this_time = i;
+            group_analyses(this_time);
         }
     }
 
