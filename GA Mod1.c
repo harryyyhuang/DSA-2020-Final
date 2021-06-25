@@ -91,6 +91,7 @@ Person checkExist(char name[]){
     if(outcome == 1)
         return people[index];
     else if(outcome == 0){
+        //處理collision時的double hashing.
         while(outcome == 0){
             collision += 1;
             index = doubleHash(hash);
@@ -144,13 +145,12 @@ void unionByRank(Person x, Person y){
 
 void group_analyse(int i){
     int all = queries[i].data.group_analyse_data.len;
-    int mids[all], count = all;
+    int mids[all], count = all, largest = 0;
     for(int k = 0; k< all; k++)
         mids[k] = queries[i].data.group_analyse_data.mids[k];
     //找關係
     Person x, y;
     for(int k = 0; k< all; k++){
-        //處理collision時的double hashing.
         x = checkExist(mails[mids[k]].from);
         y = checkExist(mails[mids[k]].to);
         unionByRank(x, y);
