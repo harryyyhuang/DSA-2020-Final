@@ -158,14 +158,12 @@ void group_analyses(int i){
     for(int k = 0; k< all; k++){
         x = checkExist(mails[mids[k]].from);
         y = checkExist(mails[mids[k]].to);
-        printf("%s %s\n", x.name, y.name);
+        //printf("self:    %s %s\n", x.name, y.name);
+        //printf("parents: %s %s\n", x.parent->name, y.parent->name);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
-    for(int n = 0; n< 2; n++){
-        printf("%d ", ans[n]);
-    }
-    printf("\n");
+    printf("%d %d\n", ans[0], ans[1]);
     api.answer(queries[i].id, ans, 2);
 }
 
