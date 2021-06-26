@@ -12,22 +12,22 @@ mail *mails;
 query *queries;
 Person people[30000];
 
+//好像哪裡怪怪的
 int find(int current, int this_time){
-    //printf("Find funciton is activated.\n");
-    //printf("%s %d\n", current.name, current.parent);
-    Person cur = people[current]; 
-    //無限迴圈
+    int first = current;
+    Person cur = people[current];
     while(cur.parent != -1 && cur.q_time == this_time){
         current = cur.parent;
         cur = people[current];
-        //printf("Update parent %d\n", current);
     }
     //如果不是這次弄過的，初始化
     if(cur.q_time != this_time){
         people[current].size = 1;
         people[current].rank = 0;
         people[current].parent = -1;
+        people[current].q_time = this_time;
     }
+    people[first].parent = current;
     return current;
 }
 
@@ -107,8 +107,6 @@ int checkExist(char name[]){
     if(outcome == 1)
         return index;
     else if(outcome == 0){
-        //處理collision時的double hashing.
-        //printf("Collision.\n");
         while(outcome == 0){
             collision += 1;
             index = doubleHash(hash);
@@ -150,19 +148,15 @@ void unionByRank(int x, int y){
             largest = compareMax(largest, people[yRoot].size);
             if(people[yRoot].rank == people[xRoot].rank)
                 people[yRoot].rank += 1;
-            //printf("Largest: %d, large.size: %d\n", largest, people[yRoot].size);
         }else{
             people[yRoot].parent = xRoot;
             people[xRoot].size += people[yRoot].size;
             largest = compareMax(largest, people[xRoot].size);
             if(people[xRoot].rank == people[yRoot].rank)
                 people[xRoot].rank += 1;
-            //printf("Largest: %d, large.size: %d\n", largest, people[xRoot].size);
         }
         count -= 1;
-        //printf("Count-1 : %d\n", count);
     }
-    //printf("\n");
 }
 
 void group_analyses(int i){
@@ -177,12 +171,9 @@ void group_analyses(int i){
     for(int k = 0; k< all; k++){
         x = checkExist(mails[mids[k]].from);
         y = checkExist(mails[mids[k]].to);
-        //printf("self:    %s %s\n", x.name, y.name);
-        //printf("parents: %s %s\n", people[x.parent].name, people[y.parent].name);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
-    //printf("%d %d\n", ans[0], ans[1]);
     api.answer(queries[i].id, ans, 2);
 }
 
