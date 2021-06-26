@@ -3,8 +3,7 @@
 
 typedef struct person{
     char name[32];
-    int rank, size, q_time, nameLen;
-    struct person *parent;
+    int rank, size, q_time, nameLen, parent, hashValue;
 }Person;
 
 int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0, this_time, all;
@@ -16,10 +15,11 @@ Person defaultNull;
 
 Person find(Person current, int this_time){
     Person cur = current;
-    while(current.parent != &defaultNull && current.q_time == this_time){
-        cur = *cur.parent;
+    while(cur.parent != -1 && cur.q_time == this_time){
+        current.parent = cur.parent;
+        cur = people[cur.parent];
+        //printf("Update parent\n");
     }
-    current.parent = &cur;
     return cur;
 }
 
@@ -75,7 +75,7 @@ int isNameMatch(char xName[], Person y){
     }
 }
 
-Person newComing(char name[], Person x){
+Person newComing(char name[], Person x, int hashValue){
     x.nameLen = len;
     for(int k = 0; k< x.nameLen; k++){
         x.name[k] = name[k];
@@ -83,7 +83,8 @@ Person newComing(char name[], Person x){
     x.rank = 0;
     x.size = 1;
     x.q_time = this_time;
-    x.parent = &defaultNull;
+    x.parent = -1;
+    x.hashValue = hashValue;
     return x;
 }
 
@@ -104,9 +105,9 @@ Person checkExist(char name[]){
         if(outcome == 1)
             return people[index];
         else
-            return newComing(name, people[index]);
+            return newComing(name, people[index], hash);
     }else
-        return newComing(name, people[index]);
+        return newComing(name, people[index], hash);
 
 }
 
@@ -117,7 +118,8 @@ void peopleINIT(void){
         people[i].size = 1;
         people[i].q_time = -1;
         people[i].nameLen = 0;
-        people[i].parent = &defaultNull;
+        people[i].parent = -1;
+        people[i].hashValue = 0;
     }
 }
 
@@ -138,7 +140,7 @@ void unionByRank(Person x, Person y){
             large = xRoot;
             small = yRoot;
         }
-        small.parent = &large;
+        small.parent = large.hashValue;
         large.size += small.size;
         count -= 1;
         largest = compareMax(largest, large.size);
@@ -159,7 +161,7 @@ void group_analyses(int i){
         x = checkExist(mails[mids[k]].from);
         y = checkExist(mails[mids[k]].to);
         //printf("self:    %s %s\n", x.name, y.name);
-        //printf("parents: %s %s\n", x.parent->name, y.parent->name);
+        //printf("parents: %s %s\n", people[x.parent].name, people[y.parent].name);
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
