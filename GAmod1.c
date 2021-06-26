@@ -18,7 +18,7 @@ int find(int current, int this_time){
     Person cur = people[current]; 
     while(cur.parent != -1 && cur.q_time == this_time){
         current = cur.parent;
-        cur = people[cur.parent];
+        cur = people[current];
         //printf("Update parent\n");
     }
     //如果不是這次弄過的，初始化
@@ -59,7 +59,7 @@ int getHashValue(char str[]){
 }
 
 int doubleHash(int hash){
-    return (hash + collision * (hash % 1121)) % 3000000;
+    return (hash + collision * (7 + hash % 1121)) % 3000000;
 }
 
 //失敗回傳0，成功回傳1，遇到空洞回傳-1
@@ -102,6 +102,7 @@ int checkExist(char name[]){
         return index;
     else if(outcome == 0){
         //處理collision時的double hashing.
+        //printf("Collision.\n");
         while(outcome == 0){
             collision += 1;
             index = doubleHash(hash);
