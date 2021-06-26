@@ -10,7 +10,7 @@ int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0, this_ti
 int n_mails, n_queries;
 mail *mails;
 query *queries;
-Person people[3000000];
+Person people[50000];
 
 int find(int current, int this_time){
     //printf("Find funciton is activated.\n");
@@ -61,7 +61,7 @@ int getHashValue(char str[]){
 }
 
 int doubleHash(int hash){
-    return (hash + collision * (7 + hash % 1121)) % 3000000;
+    return (hash + collision * (7 + hash % 1121)) % 50000;
 }
 
 //失敗回傳0，成功回傳1，遇到空洞回傳-1
