@@ -61,7 +61,7 @@ int getHashValue(char str[]){
 }
 
 int doubleHash(int hash){
-    return (hash + collision * (7 + (hash + 1) % 1121)) % 30000;
+    return (hash + collision * (3 + (hash + 1) % 29)) % 30000;
 }
 
 //失敗回傳0，成功回傳1，遇到空洞回傳-1
@@ -84,9 +84,13 @@ int isNameMatch(char xName[], int y){
 
 int newComing(char name[], int x, int hashValue){
     people[x].nameLen = len;
-    for(int k = 0; k< people[x].nameLen; k++){
-        people[x].name[k] = name[k];
+    for(j = 0; j< 32; j++){
+        if(name[j] == '\0')
+            break;
+        else
+            people[x].name[j] = name[j];
     }
+    people[x].nameLen = j;
     people[x].rank = 0;
     people[x].size = 1;
     people[x].q_time = this_time;
