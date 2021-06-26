@@ -10,7 +10,7 @@ int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0, this_ti
 int n_mails, n_queries;
 mail *mails;
 query *queries;
-Person people[50000];
+Person people[30000];
 
 int find(int current, int this_time){
     //printf("Find funciton is activated.\n");
@@ -61,7 +61,7 @@ int getHashValue(char str[]){
 }
 
 int doubleHash(int hash){
-    return (hash + collision * (7 + hash % 1121)) % 50000;
+    return (hash + collision * (7 + (hash + 1) % 1121)) % 30000;
 }
 
 //失敗回傳0，成功回傳1，遇到空洞回傳-1
@@ -120,7 +120,7 @@ int checkExist(char name[]){
 }
 
 void peopleINIT(void){
-    for(int i = 0; i< 20000; i++){
+    for(int i = 0; i< 30000; i++){
         people[i].name[0] = '\0';
         people[i].rank = 0;
         people[i].size = 1;
@@ -187,10 +187,9 @@ int main(void) {
     peopleINIT();
     for(int i = 0; i < n_queries; i++){
         if(queries[i].type == expression_match)
-            printf("");
-            //api.answer(queries[i].id, NULL, 0);
-        //else if(queries[i].type == find_similar)
-            //api.answer(queries[i].id, NULL, 0);
+            api.answer(queries[i].id, NULL, 0);
+        else if(queries[i].type == find_similar)
+            api.answer(queries[i].id, NULL, 0);
         else if(queries[i].type == group_analyse){
             group_analyses(i);
         }
