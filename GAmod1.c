@@ -14,21 +14,19 @@ Person people[30000];
 
 //好像哪裡怪怪的
 int find(int current, int this_time){
-    int first = current;
-    Person cur = people[current];
-    while(cur.parent != -1 && cur.q_time == this_time){
-        current = cur.parent;
-        cur = people[current];
+    int start = current;
+    Person carrier = people[current], prev;
+    while(carrier.parent != -1 && carrier.q_time == this_time){
+        prev = carrier;
+        current = carrier.parent;
+        carrier = people[current];
     }
-    //如果不是這次弄過的，初始化
-    if(cur.q_time != this_time){
-        people[current].size = 1;
-        people[current].rank = 0;
-        people[current].parent = -1;
-        people[current].q_time = this_time;
+    if(carrier.q_time == this_time){
+        people[start].parent = carrier.hashValue;
+    }else{
+        people[start].parent = prev.hashValue;
     }
-    people[first].parent = current;
-    return current;
+    return people[start].parent;
 }
 
 int compareMax(int a, int b){
