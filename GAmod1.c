@@ -14,11 +14,13 @@ Person people[3000000];
 Person defaultNull;
 
 Person find(Person current, int this_time){
-    Person cur = current;
+    //printf("Find funciton is activated.\n");
+    //printf("%s %d\n", current.name, current.parent);
+    Person cur = current; 
     while(cur.parent != -1 && cur.q_time == this_time){
         current.parent = cur.parent;
         cur = people[cur.parent];
-        //printf("Update parent\n");
+        printf("Update parent\n");
     }
     return cur;
 }
@@ -123,6 +125,7 @@ void peopleINIT(void){
     }
 }
 
+//把large跟small改成ptr
 void unionByRank(Person x, Person y){
     x.q_time = this_time;
     y.q_time = this_time;
@@ -131,8 +134,9 @@ void unionByRank(Person x, Person y){
     Person yRoot = find(y, this_time);
     yRoot.q_time = this_time;
     Person large, small;
+    printf("xRoot index: %d, yRoot index: %d\n", xRoot.hashValue, yRoot.hashValue);
 
-    if(&xRoot != &yRoot){
+    if(xRoot.hashValue != yRoot.hashValue){
         if(xRoot.rank < yRoot.rank){
             large = yRoot;
             small = xRoot;
@@ -141,18 +145,23 @@ void unionByRank(Person x, Person y){
             small = yRoot;
         }
         small.parent = large.hashValue;
+        printf("Parent update! %d\n", small.parent);
         large.size += small.size;
         count -= 1;
+        printf("Count-1 : %d\n", count);
+        printf("Largest: %d, large.size: %d\n", largest, large.size);
         largest = compareMax(largest, large.size);
         if(large.rank == small.rank)
             large.rank += 1;
     }
+    printf("\n");
 }
 
 void group_analyses(int i){
     this_time = i;
     all = queries[i].data.group_analyse_data.len;
-    int mids[all], count = all, largest = 0;
+    int mids[all];
+    count = all, largest = 0;
     for(int k = 0; k< all; k++)
         mids[k] = queries[i].data.group_analyse_data.mids[k];
     //找關係
