@@ -16,15 +16,17 @@ int find(int current, int this_time){
     //printf("Find funciton is activated.\n");
     //printf("%s %d\n", current.name, current.parent);
     Person cur = people[current]; 
+    //無限迴圈
     while(cur.parent != -1 && cur.q_time == this_time){
         current = cur.parent;
         cur = people[current];
-        //printf("Update parent\n");
+        //printf("Update parent %d\n", current);
     }
     //如果不是這次弄過的，初始化
     if(cur.q_time != this_time){
         people[current].size = 1;
-        people[current].rank = 1;
+        people[current].rank = 0;
+        people[current].parent = -1;
     }
     return current;
 }
@@ -176,7 +178,7 @@ void group_analyses(int i){
         unionByRank(x, y);
     }
     int ans[2] = {count, largest};
-    printf("%d %d\n", ans[0], ans[1]);
+    //printf("%d %d\n", ans[0], ans[1]);
     api.answer(queries[i].id, ans, 2);
 }
 
