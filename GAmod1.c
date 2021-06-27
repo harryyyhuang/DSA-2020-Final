@@ -7,26 +7,37 @@ typedef struct person{
 }Person;
 
 int len, ret, count = 0, largest = 0, collision = 0, outcome = 0, j = 0, this_time, all;
+int testCount = 0;
 int n_mails, n_queries;
 mail *mails;
 query *queries;
 Person people[30000];
 
 //好像哪裡怪怪的
-int find(int current, int this_time){
-    int start = current;
-    Person carrier = people[current], prev;
-    while(carrier.parent != -1 && carrier.q_time == this_time){
-        prev = carrier;
-        current = carrier.parent;
-        carrier = people[current];
+// int find(int current, int this_time){
+//     int start = current;
+//     Person carrier = people[current], prev;
+//     while(carrier.parent != -1 && carrier.parent != carrier.hashValue && carrier.q_time == this_time){
+//         prev = carrier;
+//         current = carrier.parent;
+//         carrier = people[current];
+//     }
+//     if(carrier.q_time == this_time){
+//         people[start].parent = carrier.hashValue;
+//     }else{
+//         people[start].parent = prev.hashValue;
+//     }
+//     return people[start].parent;
+// }
+
+// pass compression
+int find(Person* current){
+    if (current->parent != current->hashValue && current->q_time == this_time){
+        current->parent = find(&people[current->parent]);
     }
-    if(carrier.q_time == this_time){
-        people[start].parent = carrier.hashValue;
-    }else{
-        people[start].parent = prev.hashValue;
-    }
-    return people[start].parent;
+    // if (current->parent != current->hashValue)
+    //     current->parent = current->hashValue;
+    return current->parent;
 }
 
 int compareMax(int a, int b){
@@ -91,9 +102,12 @@ int newComing(char name[], int x, int hashValue){
     people[x].nameLen = j;
     people[x].rank = 0;
     people[x].size = 1;
-    people[x].q_time = this_time;
-    people[x].parent = -1;
+    people[x].q_time = -1; //this_time
+    people[x].parent = hashValue;
     people[x].hashValue = hashValue;
+    count+=1;
+    //if(this_time == 3)
+    //    printf("New Coming %s\n", people[x].name);
     return hashValue;
 }
 
@@ -102,20 +116,38 @@ int checkExist(char name[]){
     int hash = getHashValue(name);
     int index = hash;
     outcome = isNameMatch(name, index);
-    if(outcome == 1)
+    if(outcome == 1){
+        if(people[index].q_time != this_time){
+            count+=1;
+            people[index].rank = 0;
+            people[index].size = 1;
+            people[index].parent = index;
+        }
+        //if(this_time == 3)
+        //    printf("Match %s\n", people[index].name);
         return index;
+    }
     else if(outcome == 0){
         while(outcome == 0){
             collision += 1;
             index = doubleHash(hash);
             outcome = isNameMatch(name, index);
         }
-        if(outcome == 1)
+        if(outcome == 1){
+            if(people[index].q_time != this_time){
+                count+=1;
+                people[index].rank = 0;
+                people[index].size = 1;
+                people[index].parent = index;
+            }
+            //if(this_time == 3)
+            //    printf("Match %s\n", people[index].name);
             return index;
+        }
         else
-            return newComing(name, index, hash);
+            return newComing(name, index, index);
     }else
-        return newComing(name, index, hash);
+        return newComing(name, index, index);
 
 }
 
@@ -134,12 +166,12 @@ void peopleINIT(void){
 void unionByRank(int x, int y){
     people[x].q_time = this_time;
     people[y].q_time = this_time;
-    int xRoot = find(x, this_time);
-    int yRoot = find(y, this_time);
-    people[xRoot].q_time = this_time;
-    people[yRoot].q_time = this_time;
-
+    int xRoot = find(&people[x]);
+    int yRoot = find(&people[y]);
+    // people[xRoot].q_time = this_time;
+    // people[yRoot].q_time = this_time;
     if(xRoot != yRoot){
+        // printf("else\n");
         if(people[xRoot].rank < people[yRoot].rank){
             people[xRoot].parent = yRoot;
             people[yRoot].size += people[xRoot].size;
@@ -160,34 +192,43 @@ void unionByRank(int x, int y){
 void group_analyses(int i){
     this_time = i;
     all = queries[i].data.group_analyse_data.len;
-    int mids[all];
-    count = all, largest = 0;
-    for(int k = 0; k< all; k++)
-        mids[k] = queries[i].data.group_analyse_data.mids[k];
+    count = 0, largest = 1;
     //找關係
     int x, y;
     for(int k = 0; k< all; k++){
-        x = checkExist(mails[mids[k]].from);
-        y = checkExist(mails[mids[k]].to);
+        x = checkExist(mails[queries[i].data.group_analyse_data.mids[k]].from);
+        y = checkExist(mails[queries[i].data.group_analyse_data.mids[k]].to);
+        if(x == y && people[x].q_time!=this_time){
+            //printf("Send to his or her self. %d\n", count);
+            count -= 2;
+            //printf("Send to his or her self. %d\n", count);
+            //printf("\n");
+            continue;
+        }
         unionByRank(x, y);
+        //if(this_time == 3)
+        //    printf("\n");
     }
     int ans[2] = {count, largest};
     api.answer(queries[i].id, ans, 2);
+    //printf("%d %d\n", ans[0], ans[1]);
+
 }
 
 int main(void) {
     api.init(&n_mails, &n_queries, &mails, &queries);
     peopleINIT();
     for(int i = 0; i < n_queries; i++){
-        if(queries[i].type == expression_match)
-            api.answer(queries[i].id, NULL, 0);
-        else if(queries[i].type == find_similar)
-            api.answer(queries[i].id, NULL, 0);
-        else if(queries[i].type == group_analyse){
+        // if(queries[i].type == expression_match)
+        //     api.answer(queries[i].id, NULL, 0);
+        // else if(queries[i].type == find_similar)
+        //     api.answer(queries[i].id, NULL, 0);
+        if(queries[i].type == group_analyse){
             group_analyses(i);
+            testCount += 1;
         }
     }
+    printf("%d\n", testCount);
 
-
-  return 0;
+    return 0;
 }
